@@ -4,9 +4,51 @@ import pandas as pd
 from io import StringIO
 from datetime import datetime
 from utils.db import insert_gpu_log
+import threading
+import time
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Required for session
+
+# Global flag to control the background thread
+gpu_logger_running = True
+
+def gpu_logger_thread():
+    """Background thread function to log GPU stats periodically"""
+    global gpu_logger_running
+    interval = 300  # 5 minutes in seconds
+    print("Starting GPU logger thread...")
+    print(f"Logging interval: {interval} seconds")
+    
+    while gpu_logger_running:
+        try:
+            success, gpu_data = get_gpu_stats()
+            if success and isinstance(gpu_data, list):
+                for gpu in gpu_data:
+                    try:
+                        insert_gpu_log(
+                            gpu_index=gpu.get('index'),
+                            gpu_name=gpu.get('name'),
+                            utilization=gpu.get('utilization'),
+                            memory_used=gpu.get('memory_used')
+                        )
+                    except Exception as e:
+                        print(f"Error logging GPU stats: {str(e)}")
+            else:
+                print(f"Failed to get GPU stats: {gpu_data}")
+            time.sleep(interval)
+        except Exception as e:
+            print(f"Error in GPU logger thread: {str(e)}")
+            time.sleep(interval)
+
+# Start the GPU logger thread when the app starts
+gpu_logger_thread_obj = None
+
+def start_gpu_logger():
+    global gpu_logger_thread_obj
+    if gpu_logger_thread_obj is None:
+        gpu_logger_thread_obj = threading.Thread(target=gpu_logger_thread, daemon=True)
+        gpu_logger_thread_obj.start()
 
 # Login Page
 @app.route('/', methods=['GET', 'POST'])
@@ -227,4 +269,6 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    # Start the GPU logger thread before running the app
+    start_gpu_logger()
     app.run(debug=True, host='0.0.0.0')
