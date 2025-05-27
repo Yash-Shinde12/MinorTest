@@ -37,21 +37,34 @@ def insert_gpu_log(gpu_index, gpu_name, utilization, memory_used):
     conn.commit()
     conn.close()
 
-def get_recent_gpu_logs(hours=24):
-    """Get GPU logs from the last specified hours."""
+def get_recent_gpu_logs(hours=None):
+    """Get GPU logs from the last specified hours. If hours is None, returns all logs."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    cursor.execute('''
-    SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
-    FROM gpu_logs
-    WHERE timestamp >= datetime('now', '-' || ? || ' hours')
-    ORDER BY timestamp DESC
-    ''', (hours,))
+    if hours is None:
+        # Get all logs
+        cursor.execute('''
+        SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
+        FROM gpu_logs
+        ORDER BY timestamp DESC
+        ''')
+    else:
+        # Get logs for specified hours
+        cursor.execute('''
+        SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
+        FROM gpu_logs
+        WHERE timestamp >= datetime('now', '-' || ? || ' hours')
+        ORDER BY timestamp DESC
+        ''', (hours,))
     
     logs = cursor.fetchall()
     conn.close()
     return logs
+
+def get_all_gpu_logs():
+    """Get all GPU logs from the database."""
+    return get_recent_gpu_logs(hours=None)
 
 # Initialize the database when the module is imported
 init_db() 

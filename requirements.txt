@@ -2,3 +2,4 @@ Flask
 pexpect
 pandas
 psutil
+python-daemon
