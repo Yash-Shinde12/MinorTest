@@ -1,0 +1,174 @@
+/* Login page styles */
+.login-body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Styling for the AccessGrid logo */
+.login-logo {
+    max-width: 200px; /* Adjust the width of the logo */
+    height: auto; /* Maintain the aspect ratio */
+    display: inline-block; /* Center the logo */
+    margin: 0 auto 20px; /* Center horizontally and add spacing below */
+    z-index: 1; /* Ensure it appears above background elements */
+    position: relative; /* Align properly with other content */
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2)); /* Add a subtle shadow for better visibility */
+}
+
+.login-container {
+    display: flex;
+    width: 80%;
+    max-width: 1000px;
+    height: 600px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.login-left {
+    flex: 1;
+    background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.1)"/></svg>');
+    background-size: 150px;
+    opacity: 0.4;
+    z-index: 0;
+}
+
+.login-left h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.login-left p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+}
+
+.login-right {
+    flex: 1;
+    background-color: var(--surface-color);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-right h2 {
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+    outline: none;
+}
+
+.form-actions {
+    margin-top: 30px;
+}
+
+.form-actions input[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-actions input[type="submit"]:hover {
+    background: linear-gradient(135deg, var(--primary-gradient-end), var(--primary-gradient-start));
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.4);
+}
+
+.error-message {
+    margin-top: 20px;
+    color: var(--error-color);
+    text-align: center;
+    font-size: 0.9rem;
+    background-color: rgba(var(--error-rgb), 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid var(--error-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        height: auto;
+        width: 95%;
+    }
+    
+    .login-left, .login-right {
+        width: 100%;
+        padding: 30px;
+    }
+    
+    .login-left {
+        padding-bottom: 50px;
+    }
+    
+    .login-left h1 {
+        font-size: 2rem;
+    }
+    
+    .login-right h2 {
+        margin-top: 20px;
+    }
+}

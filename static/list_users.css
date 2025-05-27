@@ -1,0 +1,123 @@
+/* List Users page styles */
+.list-users-body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.list-users-container {
+    width: 90%;
+    max-width: 800px;
+    background-color: var(--surface-color);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    margin: 40px auto;
+}
+
+.list-users-heading {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.list-users-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--secondary-gradient-start), var(--secondary-gradient-end));
+    border-radius: 2px;
+}
+
+.user-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 30px 0;
+}
+
+.user-list li {
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    background-color: rgba(var(--surface-rgb), 0.5);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-list li:hover {
+    transform: translateX(5px);
+    background-color: rgba(var(--primary-rgb), 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+    color: var(--error-color);
+    background-color: rgba(var(--error-rgb), 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--error-color);
+    margin: 20px 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary-gradient-start), var(--secondary-gradient-end));
+    color: white;
+    box-shadow: 0 4px 15px rgba(var(--secondary-rgb), 0.4);
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 6px 20px rgba(var(--secondary-rgb), 0.6);
+    transform: translateY(-3px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .list-users-container {
+        width: 95%;
+        padding: 20px;
+        margin: 20px auto;
+    }
+    
+    .list-users-heading {
+        font-size: 1.5rem;
+    }
+    
+    .user-list li {
+        padding: 12px 15px;
+    }
+}

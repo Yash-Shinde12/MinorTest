@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Resource Utilization</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='user_utilization.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="user-utilization-body">
+    <nav class="dashboard-nav">
+        <div class="nav-title">
+            <i class="fas fa-users"></i>
+            <span>User Resource Monitor</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="user-utilization-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">User Resource Utilization</h1>
+            <div class="refresh-info">
+                <i class="fas fa-sync-alt"></i>
+                <span>Auto-refreshing every 5s</span>
+            </div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stats-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-microchip"></i> CPU Usage by User</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-memory"></i> GPU Memory Usage by User</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="gpuChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Chart.js global defaults
+        Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+        Chart.defaults.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color');
+        Chart.defaults.font.family = "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif";
+
+        function updateCharts() {
+            // Fetch CPU usage data
+            fetch('/api/user_cpu_usage')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('cpuChart').getContext('2d');
+                    if (window.cpuChart) {
+                        window.cpuChart.destroy();
+                    }
+                    window.cpuChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.username),
+                            datasets: [{
+                                label: 'CPU Usage (%)',
+                                data: data.map(item => item.cpu_percent),
+                                backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb')}, 0.5)`,
+                                borderColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb')}, 1)`,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'CPU Usage (%)',
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                                    },
+                                    grid: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+
+            // Fetch GPU usage data
+            fetch('/api/user_gpu_usage')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('gpuChart').getContext('2d');
+                    if (window.gpuChart) {
+                        window.gpuChart.destroy();
+                    }
+                    window.gpuChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.username),
+                            datasets: [{
+                                label: 'GPU Memory (MiB)',
+                                data: data.map(item => item.gpu_memory_mib),
+                                backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--secondary-rgb')}, 0.5)`,
+                                borderColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--secondary-rgb')}, 1)`,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'GPU Memory (MiB)',
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                                    },
+                                    grid: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Update charts every 5 seconds
+        updateCharts();
+        setInterval(updateCharts, 5000);
+    </script>
+</body>
+</html> 

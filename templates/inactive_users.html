@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inactive Users</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='inactive_users.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="inactive-users-body">
+    <div class="inactive-users-container">
+        <h2 class="inactive-users-heading"><i class="fas fa-user-clock"></i> Inactive Users</h2>
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% elif users %}
+            <ul class="inactive-users-list">
+                {% for user_info in users %}
+                    <li class="inactive-user">
+                        <i class="fas fa-user-slash"></i> {{ user_info }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-users-message">No inactive users found.</p>
+        {% endif %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </div>
+</body>
+</html>

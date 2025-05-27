@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List Users</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='list_users.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="list-users-body">
+    <div class="list-users-container">
+        <h2 class="list-users-heading"><i class="fas fa-users"></i> List of Users</h2>
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% else %}
+            <ul class="user-list">
+                {% for user in users %}
+                    <li><i class="fas fa-user"></i> {{ user }}</li>
+                {% endfor %}
+            </ul>
+            <button id="downloadInactiveUsers" class="btn btn-primary" style="margin-top: 20px;">
+                <i class="fas fa-download"></i> Download Inactive Users
+            </button>
+        {% endif %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const downloadBtn = document.getElementById('downloadInactiveUsers');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+                const users = Array.from(document.querySelectorAll('.user-list li')).map(li => li.textContent.trim());
+                const blob = new Blob([users.join('\n')], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'inactive_users.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    });
+    </script>
+</body>
+</html>

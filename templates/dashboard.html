@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <!-- Logout Button -->
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+
+    <div class="dashboard-container">
+        <h2 class="dashboard-heading">Welcome Admin</h2>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('search_user_route') }}" class="btn btn-search"><i class="fas fa-user-plus"></i> Search User</a>
+            <a href="{{ url_for('create_user_route') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Create User</a>
+            <a href="{{ url_for('delete_user_route') }}" class="btn btn-danger"><i class="fas fa-user-minus"></i> Delete User</a>
+            <a href="{{ url_for('list_users_route') }}" class="btn btn-list"><i class="fas fa-users"></i> List Users</a>
+            <a href="{{ url_for('inactive_users_route') }}" class="btn btn-inactive"><i class="fas fa-user-clock"></i> Inactive Users</a>
+            <a href="{{ url_for('display') }}" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+</body>
+</html>

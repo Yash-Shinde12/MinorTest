@@ -1,0 +1,208 @@
+/* Global styles and dark theme variables */
+:root {
+    /* Dark theme color palette */
+    --background-color: #121212;
+    --surface-color: #1e1e1e;
+    --surface-rgb: 30, 30, 30;
+    --text-primary: #e1e1e1;
+    --text-secondary: #a0a0a0;
+    --border-color: #333;
+    --input-bg: #2a2a2a;
+    
+    /* Primary colors - purple tones */
+    --primary-color: #8c7ae6;
+    --primary-rgb: 140, 122, 230;
+    --primary-gradient-start: #a37ae6;
+    --primary-gradient-end: #59b9c5;
+    
+    /* Secondary colors - blue tones */
+    --secondary-color: #3498db;
+    --secondary-rgb: 52, 152, 219;
+    --secondary-gradient-start: #db349b;
+    --secondary-gradient-end: #c1243e;
+
+    /* third colors - blue tones */
+    --third-color: #3498db;
+    --third-rgb: 52, 152, 219;
+    --third-gradient-start: #deff0b;
+    --third-gradient-end: #24c160;
+    
+    /* Success colors - green tones */
+    --success-color: #2ecc71;
+    --success-rgb: 46, 204, 113;
+    --success-gradient-start: #2ecc71;
+    --success-gradient-end: #27ae60;
+    
+    /* Warning colors - orange tones */
+    --warning-color: #f39c12;
+    --warning-rgb: 243, 156, 18;
+    --warning-gradient-start: #f39c12;
+    --warning-gradient-end: #e67e22;
+    
+    /* Error colors - red tones */
+    --error-color: #e74c3c;
+    --error-rgb: 231, 76, 60;
+    --error-gradient-start: #e74c3c;
+    --error-gradient-end: #c0392b;
+}
+
+/* Global styles and light theme variables */
+:root {
+    /* Light theme color palette */
+    --background-color: #ffffff;
+    --surface-color: #f8f9fa;
+    --surface-rgb: 248, 249, 250;
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --border-color: #dfe6e9;
+    --input-bg: #ffffff;
+    
+    /* Primary colors - purple tones */
+    --primary-color: #6c5ce7;
+    --primary-rgb: 108, 92, 231;
+    --primary-gradient-start: #6c5ce7;
+    --primary-gradient-end: #45aaf2;
+    
+    /* Secondary colors - blue tones */
+    --secondary-color: #0984e3;
+    --secondary-rgb: 9, 132, 227;
+    --secondary-gradient-start: #0984e3;
+    --secondary-gradient-end: #00cec9;
+
+    /* Third colors - green tones */
+    --third-color: #00b894;
+    --third-rgb: 0, 184, 148;
+    --third-gradient-start: #00b894;
+    --third-gradient-end: #55efc4;
+    
+    /* Success colors - green tones */
+    --success-color: #00b894;
+    --success-rgb: 0, 184, 148;
+    --success-gradient-start: #00b894;
+    --success-gradient-end: #00cec9;
+    
+    /* Warning colors - orange tones */
+    --warning-color: #fdcb6e;
+    --warning-rgb: 253, 203, 110;
+    --warning-gradient-start: #fdcb6e;
+    --warning-gradient-end: #ffeaa7;
+    
+    /* Error colors - red tones */
+    --error-color: #d63031;
+    --error-rgb: 214, 48, 49;
+    --error-gradient-start: #ff7675;
+    --error-gradient-end: #d63031;
+}
+
+/* Core styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--text-primary);
+    background-color: var(--background-color);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Apply animations to main containers */
+.login-container,
+.display-container,
+.dashboard-container,
+.list-users-container,
+.inactive-users-container,
+.server-dashboard-container,
+.form-card {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.card,
+.stats-card,
+.user-list li,
+.inactive-user {
+    animation: slideInUp 0.4s ease forwards;
+}
+
+/* Transitions */
+a, button, input[type="submit"], .btn {
+    transition: all 0.3s ease !important;
+}
+
+/* Responsive typography */
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.8rem; }
+    h3 { font-size: 1.5rem; }
+    h4 { font-size: 1.3rem; }
+    body { font-size: 0.95rem; }
+}
+
+/* Focus styles for accessibility */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Common helper classes */
+.text-center { text-align: center; }
+.text-primary { color: var(--primary-color); }
+.text-secondary { color: var(--secondary-color); }
+.text-success { color: var(--success-color); }
+.text-warning { color: var(--warning-color); }
+.text-error { color: var(--error-color); }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }

@@ -1,0 +1,26 @@
+
+for inactive users
+
+
+awk -F: '$3 >= 1000 && $1 != "nobody" { print $1 }' /etc/passwd | while read user; do
+  lastlog -u "$user" | tail -n 1 | awk -v u="$user" -v days=7 '
+  {
+    if ($0 ~ /Never logged in/) {
+      print u ": Never logged in"
+    } else {
+      login = $4 " " $5 " " $6 " " $7
+      cmd = "date -d \"" login "\" +%s"
+      cmd | getline login_time
+      close(cmd)
+      now = systime()
+      if ((now - login_time) > (days * 86400)) {
+        print u ": Last login over " days " days ago (" login ")"
+      }
+    }
+  }'
+done
+
+
+
+
+from awk till done all 

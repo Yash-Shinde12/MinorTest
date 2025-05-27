@@ -1,0 +1,18 @@
+dependencies
+
+1.sudo pip3 install flask pexpect
+3. pip3 install pexpect
+
+
+runnig the server command 
+
+2. sudo python3 app.py
+
+
+pip install flask-sqlalchemy
+
+python add_test_users.py
+
+python generate_gpu_stats.py
+
+

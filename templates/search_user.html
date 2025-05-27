@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search User</title>
+    <!-- Link to the external CSS files -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='search_user.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="search-user-body">
+    <div class="search-user-container">
+        <h2 class="search-user-heading"><i class="fas fa-search"></i> Search for a User</h2>
+        <form method="POST" action="{{ url_for('search_user_route') }}" class="search-form">
+            <input type="text" name="search_query" placeholder="Search for a user" value="{{ query if query else '' }}">
+            <button type="submit"><i class="fas fa-search"></i> Search</button>
+        </form>
+
+        {% if users %}
+            <ul class="user-list">
+                {% for user in users %}
+                    <li><i class="fas fa-user"></i> {{ user }}</li>
+                {% endfor %}
+            </ul>
+        {% elif error %}
+            <p class="error-message">{{ error }}</p>
+        {% else %}
+            <p class="error-message">No users found.</p>
+        {% endif %}
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </div>
+</body>
+</html>

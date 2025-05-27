@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Analysis Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='serverdashboard.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+</head>
+
+<body class="server-dashboard-body">
+    <nav class="dashboard-nav">
+        <div class="nav-title">
+            <i class="fas fa-chart-line"></i>
+            <span>CSV Analysis</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('server_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="server-dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">CSV Analysis Dashboard</h1>
+        </div>
+
+        <!-- <div id="csvLoadingSpinner" class="loading-spinner"></div>
+          -->
+
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-upload-container">
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required>
+                    <label for="csvFile" class="file-upload-label">
+                        <i class="fas fa-file-upload"></i>
+                        Choose CSV File
+                    </label>
+                    <span id="fileName">No file chosen</span>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-chart-bar"></i>
+                    Analyze Data
+                </button>
+            </form>
+        </div>
+
+        <div id="analysisResults" class="analysis-results" style="display: none;">
+            <div class="stats-container" id="gpuStatsContainer">
+                <!-- GPU cards will be dynamically generated here -->
+            </div>
+
+            <div class="download-section">
+                <button id="downloadCharts" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    Download Charts
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show spinner before analysis
+        
+        // document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+        //     e.preventDefault();
+        //     document.getElementById('csvLoadingSpinner').style.display = 'block'; // Show spinner
+        //     const formData = new FormData(this);
+        //     try {
+        //         const response = await fetch('/api/analyze_csv', {
+        //             method: 'POST',
+        //             body: formData
+        //         });
+        //         document.getElementById('csvLoadingSpinner').style.display = 'none'; // Hide spinner
+        //         if (response.ok) {
+        //             const data = await response.json();
+        //             displayAnalysisResults(data);
+        //         } else {
+        //             alert('Error analyzing CSV file');
+        //         }
+        //     } catch (error) {
+        //         document.getElementById('csvLoadingSpinner').style.display = 'none'; // Hide spinner
+        //         console.error('Error:', error);
+        //         alert('Error analyzing CSV file');
+        //     }
+        // });
+
+        // File input handling
+        document.getElementById('csvFile').addEventListener('change', function (e) {
+            const fileName = e.target.files[0]?.name || 'No file chosen';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        // Form submission handling
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/api/analyze_csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayAnalysisResults(data);
+                } else {
+                    alert('Error analyzing CSV file');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error analyzing CSV file');
+            }
+        });
+
+        function createGpuCards(gpuIndex, gpuName) {
+            const cardHTML = `
+                <div class="gpu-section" data-gpu="${gpuIndex}">
+                    <h2 class="gpu-title">
+                        <span class="gpu-index">GPU ${gpuIndex}</span>
+                        <span class="gpu-name">${gpuName}</span>
+                    </h2>
+                    <div class="gpu-stats">
+                        <div class="stats-card full-width">
+                            <div class="card-header">
+                                <h3><i class="fas fa-tachometer-alt"></i> GPU Utilization</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="gpuUtilizationChart${gpuIndex}"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="stats-card full-width">
+                            <div class="card-header">
+                                <h3><i class="fas fa-memory"></i> Memory Usage</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="memoryUtilizationChart${gpuIndex}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return cardHTML;
+        }
+
+        function initializeCharts(gpuIndex, data) {
+            const charts = {};
+
+            // Common chart options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 12,
+                                family: "'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif"
+                            },
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'x',
+                            modifierKey: 'ctrl',
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'x',
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                elements: {
+                    line: {
+                        borderWidth: 2
+                    },
+                    point: {
+                        radius: 0,
+                        hitRadius: 10,
+                        hoverRadius: 4
+                    }
+                }
+            };
+
+            // GPU Utilization Chart
+            charts.utilization = new Chart(document.getElementById(`gpuUtilizationChart${gpuIndex}`).getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.timestamps,
+                    datasets: [{
+                        label: `GPU ${gpuIndex} Utilization (%)`,
+                        data: data.utilization,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Memory Usage Chart
+            charts.memory = new Chart(document.getElementById(`memoryUtilizationChart${gpuIndex}`).getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.timestamps,
+                    datasets: [{
+                        label: `GPU ${gpuIndex} Memory (MiB)`,
+                        data: data.memory,
+                        borderColor: 'rgba(192, 75, 75, 1)',
+                        backgroundColor: 'rgba(192, 75, 75, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                callback: function (value) {
+                                    return value.toLocaleString() + ' MiB';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            return charts;
+        }
+
+        function displayAnalysisResults(data) {
+            const container = document.getElementById('gpuStatsContainer');
+            container.innerHTML = '';
+
+            // Create cards and charts for each GPU
+            data.forEach(gpuData => {
+                container.insertAdjacentHTML('beforeend', createGpuCards(gpuData.index, gpuData.name));
+                initializeCharts(gpuData.index, gpuData);
+            });
+
+            document.getElementById('analysisResults').style.display = 'block';
+        }
+
+        // Download charts functionality
+        document.getElementById('downloadCharts').addEventListener('click', function () {
+            const charts = document.querySelectorAll('canvas');
+            charts.forEach((canvas, index) => {
+                // Create a temporary canvas with white background
+                const tmpCanvas = document.createElement('canvas');
+                tmpCanvas.width = canvas.width;
+                tmpCanvas.height = canvas.height;
+                const ctx = tmpCanvas.getContext('2d');
+                // Fill with white
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+                // Draw the chart on top
+                ctx.drawImage(canvas, 0, 0);
+                // Save as PNG
+                tmpCanvas.toBlob(function (blob) {
+                    saveAs(blob, `gpu_chart_${index + 1}.png`);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

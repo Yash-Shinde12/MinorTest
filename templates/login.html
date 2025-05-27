@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AccessGrid Login</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='login.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <!-- Left Section -->
+        <div class="login-left">
+            <div >
+                <img src="{{ url_for('static', filename='images/accessgrid_official_logo.png') }}" alt="AccessGrid Logo" class="login-logo">
+            </div>
+            <h1>Welcome to AccessGrid</h1>
+            <p>AccessGrid is your centralized platform for managing users, monitoring server performance, and ensuring seamless administrative control. Experience efficiency and simplicity like never before!</p>
+        </div>
+
+        <!-- Right Section -->
+        <div class="login-right">
+            <h2>Welcome back to AccessGrid!</h2>
+            <form method="post">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your Username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-actions">
+                    <input type="submit" value="Login Now">
+                </div>
+            </form>
+            {% if error %}
+            <p class="error-message">{{ error }}</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
