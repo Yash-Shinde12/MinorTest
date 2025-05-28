@@ -1,26 +1,32 @@
 import sqlite3
 from datetime import datetime
 import os
-import pytz
-from time import strftime
+import subprocess
 
 DB_PATH = 'gpu_logs.db'
+
+def get_system_timestamp():
+    """Get current timestamp from system using date command on Linux."""
+    try:
+        # Use date command to get timestamp in ISO format
+        timestamp = subprocess.check_output(['date', '+%Y-%m-%d %H:%M:%S']).decode().strip()
+        return timestamp
+    except Exception:
+        # Fallback to Python's datetime if date command fails
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def init_db():
     """Initialize the database and create necessary tables if they don't exist."""
     conn = sqlite3.connect(DB_PATH)
     
-    # Enable foreign key support
-    conn.execute("PRAGMA foreign_keys = ON")
-    
-    # Register custom function for local timestamp
-    def local_timestamp():
-        return strftime('%Y-%m-%d %H:%M:%S')
-    conn.create_function('local_timestamp', 0, local_timestamp)
+    # Register custom function for system timestamp
+    def system_timestamp():
+        return get_system_timestamp()
+    conn.create_function('system_timestamp', 0, system_timestamp)
     
     cursor = conn.cursor()
     
-    # Create GPU logs table with local timestamp
+    # Create GPU logs table with system timestamp
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS gpu_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +34,7 @@ def init_db():
         gpu_name TEXT,
         utilization_percent REAL,
         memory_used_mib REAL,
-        timestamp DATETIME DEFAULT (local_timestamp())
+        timestamp DATETIME DEFAULT (system_timestamp())
     )
     ''')
     
@@ -39,16 +45,16 @@ def insert_gpu_log(gpu_index, gpu_name, utilization, memory_used):
     """Insert a new GPU log entry into the database."""
     conn = sqlite3.connect(DB_PATH)
     
-    # Register custom function for local timestamp
-    def local_timestamp():
-        return strftime('%Y-%m-%d %H:%M:%S')
-    conn.create_function('local_timestamp', 0, local_timestamp)
+    # Register custom function for system timestamp
+    def system_timestamp():
+        return get_system_timestamp()
+    conn.create_function('system_timestamp', 0, system_timestamp)
     
     cursor = conn.cursor()
     
     cursor.execute('''
     INSERT INTO gpu_logs (gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp)
-    VALUES (?, ?, ?, ?, local_timestamp())
+    VALUES (?, ?, ?, ?, system_timestamp())
     ''', (gpu_index, gpu_name, utilization, memory_used))
     
     conn.commit()
@@ -58,10 +64,10 @@ def get_recent_gpu_logs(hours=None):
     """Get GPU logs from the last specified hours. If hours is None, returns all logs."""
     conn = sqlite3.connect(DB_PATH)
     
-    # Register custom function for local timestamp
-    def local_timestamp():
-        return strftime('%Y-%m-%d %H:%M:%S')
-    conn.create_function('local_timestamp', 0, local_timestamp)
+    # Register custom function for system timestamp
+    def system_timestamp():
+        return get_system_timestamp()
+    conn.create_function('system_timestamp', 0, system_timestamp)
     
     cursor = conn.cursor()
     
@@ -73,11 +79,11 @@ def get_recent_gpu_logs(hours=None):
         ORDER BY timestamp DESC
         ''')
     else:
-        # Get logs for specified hours using local time
+        # Get logs for specified hours using system time
         cursor.execute('''
         SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
         FROM gpu_logs
-        WHERE timestamp >= datetime(local_timestamp(), '-' || ? || ' hours')
+        WHERE timestamp >= datetime(system_timestamp(), '-' || ? || ' hours')
         ORDER BY timestamp DESC
         ''', (hours,))
     
