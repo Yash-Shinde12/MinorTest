@@ -7,6 +7,8 @@ from utils.db import insert_gpu_log, get_recent_gpu_logs
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Required for session
+app.config['JSON_AS_ASCII'] = False  # Ensure proper JSON encoding
+app.config['TEMPLATES_AUTO_RELOAD'] = True  # Auto reload templates
 
 # Login Page
 @app.route('/', methods=['GET', 'POST'])
@@ -202,8 +204,21 @@ def user_cpu_usage():
         if not data:  # If no users are using CPU
             return jsonify([{
                 'username': 'No active users',
-                'cpu_percent': 0
+                'cpu_percent': 0,
+                'process_count': 0,
+                'processes': []
             }])
+            
+        # Sort users by CPU usage
+        data.sort(key=lambda x: x['cpu_percent'], reverse=True)
+        
+        # For each user, sort their processes by CPU usage
+        for user in data:
+            if 'processes' in user:
+                user['processes'].sort(key=lambda x: x['cpu_percent'], reverse=True)
+                # Limit to top 10 processes per user to avoid overwhelming the UI
+                user['processes'] = user['processes'][:10]
+        
         return jsonify(data)
     else:
         return jsonify({"error": data}), 500

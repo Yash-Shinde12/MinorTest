@@ -72,19 +72,19 @@ def get_recent_gpu_logs(hours=None):
     cursor = conn.cursor()
     
     if hours is None:
-        # Get all logs
+        # Get all logs in chronological order
         cursor.execute('''
         SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
         FROM gpu_logs
-        ORDER BY timestamp DESC
+        ORDER BY timestamp ASC
         ''')
     else:
-        # Get logs for specified hours using system time
+        # Get logs for specified hours using system time in chronological order
         cursor.execute('''
         SELECT gpu_index, gpu_name, utilization_percent, memory_used_mib, timestamp
         FROM gpu_logs
         WHERE timestamp >= datetime(system_timestamp(), '-' || ? || ' hours')
-        ORDER BY timestamp DESC
+        ORDER BY timestamp ASC
         ''', (hours,))
     
     logs = cursor.fetchall()

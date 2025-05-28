@@ -188,7 +188,7 @@ def get_cpu_live_info():
 
 def get_user_cpu_usage():
     try:
-        # More robust command for CPU usage by user
+        # More detailed command that gets process info with CPU usage per user
         command = """
         ps aux --no-headers | awk '
         BEGIN {
@@ -196,18 +196,28 @@ def get_user_cpu_usage():
             CPUSUM=0
         }
         {
-            if ($3 > 0.0) {  # Only count processes using CPU
-                CPUSUM[$1] += $3
-                PROCCOUNT[$1] += 1
+            user=$1
+            pid=$2
+            cpu=$3
+            mem=$4
+            cmd=substr($0, index($0,$11))  # Get full command
+            if (cpu > 0.0) {  # Only count processes using CPU
+                CPUSUM[user] += cpu
+                PROCCOUNT[user] += 1
+                # Store process details in an array
+                if (length(PROCDETAILS[user]) < 1000) {  # Limit details to avoid overflow
+                    PROCDETAILS[user] = PROCDETAILS[user] sprintf("%d,%.1f,%.1f,%s;", pid, cpu, mem, cmd)
+                }
             }
         }
         END {
             for (user in CPUSUM) {
                 if (user != "root" && user != "nobody" && user != "systemd+") {
-                    printf "%s %.2f\n", user, CPUSUM[user]
+                    # Print: username, total CPU, process count, and process details
+                    printf "%s,%.2f,%d,%s\\n", user, CPUSUM[user], PROCCOUNT[user], PROCDETAILS[user]
                 }
             }
-        }' | sort -k2 -nr
+        }' | sort -t, -k2 -nr
         """
         
         result = subprocess.run(
@@ -221,16 +231,35 @@ def get_user_cpu_usage():
         if result.returncode != 0:
             return False, result.stderr.strip()
 
-        # Parse the output
+        # Parse the output into a more detailed structure
         user_cpu_usage = []
         for line in result.stdout.strip().split('\n'):
             if line:
                 try:
-                    username, cpu_percent = line.split()
-                    user_cpu_usage.append({
-                        'username': username,
-                        'cpu_percent': float(cpu_percent)
-                    })
+                    # Split the main fields
+                    user_data = line.split(',', 3)  # Split into 4 parts: user, cpu, proccount, details
+                    if len(user_data) >= 4:
+                        username, cpu_percent, proc_count = user_data[0:3]
+                        process_details = []
+                        
+                        # Parse process details
+                        if user_data[3]:
+                            for proc in user_data[3].split(';'):
+                                if proc:
+                                    pid, proc_cpu, proc_mem, cmd = proc.split(',', 3)
+                                    process_details.append({
+                                        'pid': int(pid),
+                                        'cpu_percent': float(proc_cpu),
+                                        'memory_percent': float(proc_mem),
+                                        'command': cmd.strip()
+                                    })
+                        
+                        user_cpu_usage.append({
+                            'username': username,
+                            'cpu_percent': float(cpu_percent),
+                            'process_count': int(proc_count),
+                            'processes': process_details
+                        })
                 except (ValueError, IndexError) as e:
                     continue  # Skip malformed lines
                 
