@@ -53,20 +53,28 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .dashboard-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
 }
 
 .refresh-info {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    padding: 8px 16px;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.refresh-info i {
+    color: var(--primary-color);
 }
 
 .stats-container {
@@ -344,8 +352,7 @@
 
     .dashboard-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+        align-items: stretch;
     }
 
     .server-dashboard-heading {
@@ -468,4 +475,110 @@
 @keyframes spin {
     0% { transform: rotate(0deg);}
     100% { transform: rotate(360deg);}
+}
+
+/* Time Range Selector Styles */
+.time-range-selector {
+    position: relative;
+    margin-right: 1rem;
+}
+
+.time-range-selector select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 12px 40px 12px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background-color: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+}
+
+.time-range-selector::after {
+    content: '\f107';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    pointer-events: none;
+}
+
+.time-range-selector select:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.time-range-selector select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+}
+
+.time-range-selector select option {
+    padding: 12px;
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+/* Update dashboard header for better alignment */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-title {
+    margin: 0;
+    flex: 1;
+}
+
+.refresh-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 8px 16px;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.refresh-info i {
+    color: var(--primary-color);
+}
+
+/* Responsive adjustments for time range selector */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .time-range-selector {
+        margin: 1rem 0;
+        width: 100%;
+    }
+
+    .time-range-selector select {
+        width: 100%;
+    }
+
+    .refresh-info {
+        width: 100%;
+        justify-content: center;
+    }
 }

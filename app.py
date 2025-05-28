@@ -199,6 +199,11 @@ def user_cpu_usage():
 
     success, data = get_user_cpu_usage()
     if success:
+        if not data:  # If no users are using CPU
+            return jsonify([{
+                'username': 'No active users',
+                'cpu_percent': 0
+            }])
         return jsonify(data)
     else:
         return jsonify({"error": data}), 500
@@ -210,8 +215,18 @@ def user_gpu_usage():
 
     success, data = get_user_gpu_usage()
     if success:
+        if not data:  # If no users are using GPU
+            return jsonify([{
+                'username': 'No GPU usage',
+                'gpu_memory_mib': 0
+            }])
         return jsonify(data)
     else:
+        if "nvidia-smi not found" in str(data):
+            return jsonify([{
+                'username': 'NVIDIA driver not installed',
+                'gpu_memory_mib': 0
+            }])
         return jsonify({"error": data}), 500
 
 @app.route('/user_utilization')

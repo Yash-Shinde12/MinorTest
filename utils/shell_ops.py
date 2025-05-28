@@ -188,13 +188,34 @@ def get_cpu_live_info():
 
 def get_user_cpu_usage():
     try:
-        # Run the command to get CPU usage by user
-        command = "ps -eo user,%cpu,uid --sort=-%cpu | awk 'NR>1 && $3>=1000 {cpu[$1]+=$2} END {for (u in cpu) print u, cpu[u]}' | sort -k2 -nr"
+        # More robust command for CPU usage by user
+        command = """
+        ps aux --no-headers | awk '
+        BEGIN {
+            PROCCOUNT=0
+            CPUSUM=0
+        }
+        {
+            if ($3 > 0.0) {  # Only count processes using CPU
+                CPUSUM[$1] += $3
+                PROCCOUNT[$1] += 1
+            }
+        }
+        END {
+            for (user in CPUSUM) {
+                if (user != "root" && user != "nobody" && user != "systemd+") {
+                    printf "%s %.2f\n", user, CPUSUM[user]
+                }
+            }
+        }' | sort -k2 -nr
+        """
+        
         result = subprocess.run(
             ['bash', '-c', command],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            env={'LANG': 'C'}  # Ensure consistent output format
         )
         
         if result.returncode != 0:
@@ -204,48 +225,72 @@ def get_user_cpu_usage():
         user_cpu_usage = []
         for line in result.stdout.strip().split('\n'):
             if line:
-                username, cpu_percent = line.split()
-                user_cpu_usage.append({
-                    'username': username,
-                    'cpu_percent': float(cpu_percent)
-                })
-
+                try:
+                    username, cpu_percent = line.split()
+                    user_cpu_usage.append({
+                        'username': username,
+                        'cpu_percent': float(cpu_percent)
+                    })
+                except (ValueError, IndexError) as e:
+                    continue  # Skip malformed lines
+                
         return True, user_cpu_usage
     except Exception as e:
         return False, f"Error fetching user CPU usage: {str(e)}"
 
 def get_user_gpu_usage():
     try:
-        # Run the command to get GPU usage by user
-        command = '''
-        nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory --format=csv,noheader,nounits | while read -r pid pname mem; do
-            uid=$(stat -c %u /proc/$pid 2>/dev/null)
-            if [ "$uid" -ge 1000 ]; then
-                user=$(ps -o user= -p $pid)
-                echo "$user $mem"
+        # More robust command for GPU usage by user
+        command = """
+        nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits 2>/dev/null | while read -r line; do
+            if [ ! -z "$line" ]; then
+                pid=$(echo $line | cut -d, -f1)
+                mem=$(echo $line | cut -d, -f2)
+                if [ -e "/proc/$pid" ]; then
+                    user=$(ps -o user= -p $pid 2>/dev/null)
+                    if [ ! -z "$user" ] && [ "$user" != "root" ]; then
+                        echo "$user $mem"
+                    fi
+                fi
             fi
-        done | awk '{mem[$1]+=$2} END {for (u in mem) print u, mem[u]}' | sort -k2 -nr
-        '''
+        done | awk '
+        {
+            mem[$1] += $2
+        }
+        END {
+            for (user in mem) {
+                printf "%s %.0f\n", user, mem[user]
+            }
+        }' | sort -k2 -nr
+        """
         
         result = subprocess.run(
             ['bash', '-c', command],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            env={'LANG': 'C'}  # Ensure consistent output format
         )
         
         if result.returncode != 0:
+            # Check if nvidia-smi is available
+            nvidia_check = subprocess.run(['which', 'nvidia-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if nvidia_check.returncode != 0:
+                return False, "nvidia-smi not found. Please ensure NVIDIA drivers are installed."
             return False, result.stderr.strip()
 
         # Parse the output
         user_gpu_usage = []
         for line in result.stdout.strip().split('\n'):
-            if line:
-                username, gpu_memory = line.split()
-                user_gpu_usage.append({
-                    'username': username,
-                    'gpu_memory_mib': float(gpu_memory)
-                })
+            if line and not line.isspace():
+                try:
+                    username, gpu_memory = line.split()
+                    user_gpu_usage.append({
+                        'username': username,
+                        'gpu_memory_mib': float(gpu_memory)
+                    })
+                except (ValueError, IndexError) as e:
+                    continue  # Skip malformed lines
 
         return True, user_gpu_usage
     except Exception as e:
