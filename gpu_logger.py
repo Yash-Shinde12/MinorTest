@@ -29,15 +29,23 @@ def log_gpu_stats():
     if success and isinstance(gpu_data, list):
         for gpu in gpu_data:
             try:
+                # Extract correct values from GPU data
+                gpu_index = gpu.get('index')
+                gpu_name = gpu.get('name')
+                utilization = gpu.get('gpu_util', 0)  # Changed from 'utilization' to 'gpu_util'
+                memory_used = gpu.get('mem_used', 0)  # Changed from 'memory_used' to 'mem_used'
+                
+                # Log the values
                 insert_gpu_log(
-                    gpu_index=gpu.get('index'),
-                    gpu_name=gpu.get('name'),
-                    utilization=gpu.get('utilization'),
-                    memory_used=gpu.get('memory_used')
+                    gpu_index=gpu_index,
+                    gpu_name=gpu_name,
+                    utilization=utilization,
+                    memory_used=memory_used
                 )
-                logging.info(f"Logged stats for GPU {gpu.get('index')}: Utilization={gpu.get('utilization')}%, Memory={gpu.get('memory_used')}MiB")
+                logging.info(f"Logged stats for GPU {gpu_index}: Utilization={utilization}%, Memory={memory_used}MiB")
             except Exception as e:
                 logging.error(f"Error logging GPU stats: {str(e)}")
+                logging.error(f"GPU data received: {gpu}")  # Added to debug data structure
     else:
         logging.error(f"Failed to get GPU stats: {gpu_data}")
 
