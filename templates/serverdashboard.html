@@ -38,7 +38,15 @@
     <div class="server-dashboard-container">
         <div class="dashboard-header">
             <h1 class="dashboard-title">GPU Performance Metrics</h1>
-            <div class="refresh-info">
+            <div class="time-range-selector">
+                <select id="timeRange" onchange="handleTimeRangeChange()">
+                    <option value="live">Live Monitoring</option>
+                    <option value="daily">Last 24 Hours</option>
+                    <option value="weekly">Last Week</option>
+                    <option value="monthly">Last Month</option>
+                </select>
+            </div>
+            <div class="refresh-info" id="refreshInfo">
                 <i class="fas fa-sync-alt"></i>
                 <span>Auto-refreshing every 2s</span>
             </div>
@@ -206,9 +214,82 @@
 
         // Store charts for each GPU
         const gpuCharts = {};
+        let currentMode = 'live';
+        let updateInterval;
 
-        // Modified fetchGpuStats function
+        // Function to handle time range changes
+        async function handleTimeRangeChange() {
+            const selectedRange = document.getElementById('timeRange').value;
+            currentMode = selectedRange;
+            
+            // Clear existing interval if any
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+
+            // Update refresh info text
+            const refreshInfo = document.getElementById('refreshInfo');
+            if (selectedRange === 'live') {
+                refreshInfo.innerHTML = '<i class="fas fa-sync-alt"></i><span>Auto-refreshing every 2s</span>';
+                // Start live updates
+                fetchGpuStats();
+                updateInterval = setInterval(fetchGpuStats, 2000);
+            } else {
+                refreshInfo.innerHTML = '<i class="fas fa-history"></i><span>Historical Data</span>';
+                // Fetch historical data
+                await fetchHistoricalData(selectedRange);
+            }
+        }
+
+        // Function to fetch historical data
+        async function fetchHistoricalData(timeRange) {
+            try {
+                const response = await fetch(`/api/historical_gpu_stats?range=${timeRange}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const container = document.getElementById('gpuStatsContainer');
+                    
+                    // Initialize cards for new GPUs
+                    data.forEach(gpu => {
+                        if (!document.querySelector(`[data-gpu="${gpu.index}"]`)) {
+                            container.insertAdjacentHTML('beforeend', createGpuCards(gpu.index, gpu.name));
+                            gpuCharts[gpu.index] = initializeCharts(gpu.index);
+                        }
+                    });
+
+                    // Update charts with historical data
+                    data.forEach(gpu => {
+                        const charts = gpuCharts[gpu.index];
+                        const section = document.querySelector(`[data-gpu="${gpu.index}"]`);
+                        
+                        // Update current values with latest data
+                        const currentValues = section.querySelectorAll('.current-value');
+                        const lastUtilization = gpu.utilization[gpu.utilization.length - 1] || 0;
+                        const lastMemory = gpu.memory[gpu.memory.length - 1] || 0;
+                        
+                        currentValues[0].textContent = `${lastUtilization}%`;
+                        currentValues[1].textContent = `${lastMemory} MiB`;
+
+                        // Update charts with all historical data
+                        charts.utilization.data.labels = gpu.timestamps;
+                        charts.utilization.data.datasets[0].data = gpu.utilization;
+                        charts.utilization.update();
+
+                        charts.memory.data.labels = gpu.timestamps;
+                        charts.memory.data.datasets[0].data = gpu.memory;
+                        charts.memory.update();
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching historical data:', error);
+            }
+        }
+
+        // Modified fetchGpuStats function for live updates
         async function fetchGpuStats() {
+            if (currentMode !== 'live') return;
+            
             try {
                 const response = await fetch('/api/gpu_stats');
                 const data = await response.json();
@@ -265,10 +346,6 @@
             }
         }
 
-        // Initial fetch and set interval
-        fetchGpuStats();
-        setInterval(fetchGpuStats, 2000);
-
         async function fetchCpuInfo() {
             try {
                 const response = await fetch('/api/cpu_live_info');
@@ -299,6 +376,30 @@
         // Initial fetch and auto-refresh every 2s
         fetchCpuInfo();
         setInterval(fetchCpuInfo, 2000);
+
+        // Initialize with live data
+        fetchGpuStats();
+        updateInterval = setInterval(fetchGpuStats, 2000);
     </script>
+
+    <style>
+        .time-range-selector {
+            margin: 1rem 0;
+            text-align: right;
+        }
+
+        .time-range-selector select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .time-range-selector select:hover {
+            border-color: #666;
+        }
+    </style>
 </body>
 </html>
